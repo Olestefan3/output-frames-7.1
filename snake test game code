@@ -1,0 +1,124 @@
+import pygame, random
+
+# Настройки игры
+WIDTH = 800
+HEIGHT = 600
+FPS = 15
+CELL_SIZE = 20
+
+# Настройки цветов
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+GREEN = (0, 255, 0)
+RED = (255, 0, 0)
+
+# Инициализация библиотеки pygame
+pygame.init()
+pygame.mixer.init()
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Snake Game")
+clock = pygame.time.Clock()
+
+# Функция для вывода текста на экран
+def draw_text(text, font_name, size, color, x, y, align="nw"):
+    font = pygame.font.SysFont(font_name, size)
+    text_surface = font.render(text, True, color)
+    text_rect = text_surface.get_rect()
+    if align == "nw":
+        text_rect.topleft = (x, y)
+    elif align == "ne":
+        text_rect.topright = (x, y)
+    elif align == "sw":
+        text_rect.bottomleft = (x, y)
+    elif align == "se":
+        text_rect.bottomright = (x, y)
+    elif align == "n":
+        text_rect.midtop = (x, y)
+    elif align == "s":
+        text_rect.midbottom = (x, y)
+    elif align == "e":
+        text_rect.midright = (x, y)
+    elif align == "w":
+        text_rect.midleft = (x, y)
+    elif align == "center":
+        text_rect.center = (x, y)
+    screen.blit(text_surface, text_rect)
+
+# Класс змейки
+class Snake:
+    def __init__(self):
+        self.color = GREEN
+        self.reset()
+
+    # Сброс змейки
+    def reset(self):
+        self.head_pos = [WIDTH // 2, HEIGHT // 2]
+        self.body = [[self.head_pos[0], self.head_pos[1]],
+                     [self.head_pos[0] - CELL_SIZE, self.head_pos[1]],
+                     [self.head_pos[0] - 2 * CELL_SIZE, self.head_pos[1]]]
+        self.direction = "right"
+        self.speed = 20
+
+    # Обновление состояния змейки
+    def update(self):
+        # Изменение положения головы
+        if self.direction == "right":
+            self.head_pos[0] += self.speed
+        elif self.direction == "left":
+            self.head_pos[0] -= self.speed
+        elif self.direction == "up":
+            self.head_pos[1] -= self.speed
+        elif self.direction == "down":
+            self.head_pos[1] += self.speed
+
+        # Добавление нового сегмента к телу змейки
+        self.body.insert(0, list(self.head_pos))
+
+        # Удаление последнего сегмента тела змейки
+        self.body.pop()
+
+    # Рисование змейки на экране
+    def draw(self):
+        for pos in self.body:
+            rect = pygame.Rect(pos[0], pos[1], CELL_SIZE, CELL_SIZE)
+            pygame.draw.rect(screen, self.color, rect)
+
+    # Проверка на столкновение с самой собой
+    def check_collision(self):
+        return self.head_pos in self.body[1:]
+
+    # Проверка на столкновение с краем экрана
+    def check_boundary(self):
+        if self.head_pos[0] < 0 or self.head_pos[0] >= WIDTH:
+            return True
+        elif self.head_pos[1] < 0 or self.head_pos[1] >= HEIGHT:
+            return True
+        return False
+
+    # Поворот змейки
+    def turn(self, direction):
+        if direction == "right" and self.direction != "left":
+            self.direction = "right"
+        elif direction == "left" and self.direction != "right":
+            self.direction = "left"
+        elif direction == "up" and self.direction != "down":
+            self.direction = "up"
+        elif direction == "down" and self.direction != "up":
+            self.direction = "down"
+
+# Класс еды
+class Food:
+    def __init__(self):
+        self.color = RED
+        self.pos = [0, 0]
+        self.spawn()
+
+    # Рисование еды на экране
+    def draw(self):
+        rect = pygame.Rect(self.pos[0], self.pos[1], CELL_SIZE, CELL_SIZE)
+        pygame.draw.rect(screen, self.color, rect)
+
+    # Спавн новой еды на экране
+    def spawn(self):
+        x = random.randrange(CELL_SIZE, WIDTH - CELL_SIZE, CELL_SIZE)
+        y = random.randrange(CELL_SIZE, H
